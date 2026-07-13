@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relatório Semanal — Repercussão & Mídias · Globo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @font-face{font-family:'Globotipo';src:url('fonts/GlobotipoCorporativa-Regular.ttf') format('truetype');font-weight:400;}
+  @font-face{font-family:'Globotipo';src:url('fonts/GlobotipoCorporativa-Bold.ttf') format('truetype');font-weight:700;}
+  @font-face{font-family:'GlobotipoTextos';src:url('fonts/GlobotipoCorporativaTextos-Regular.ttf') format('truetype');font-weight:400;}
+  @font-face{font-family:'GlobotipoTextos';src:url('fonts/GlobotipoCorporativaTextos-Bold.ttf') format('truetype');font-weight:700;}
+  :root{
+    --blue-0:#0B1E9E;--blue-1:#1B2CC1;--blue-2:#2D6CDF;--blue-deep:#0A1580;
+    --card:#FFFFFF;--card-txt:#0B1E9E;--card-dim:#5A6BB5;--line:#E2E8F5;
+    --green:#39FF6A;--cyan:#00E5FF;--yellow:#FFD60A;--red:#FF5A6E;
+    --txt:#EDF1FF;--txt-dim:#B8C4F0;
+    --display:'Globotipo',Georgia,serif;--body:'GlobotipoTextos',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;color:var(--txt);font-family:var(--body);-webkit-font-smoothing:antialiased;
+    background:linear-gradient(135deg,var(--blue-0) 0%,var(--blue-1) 45%,var(--blue-2) 100%);
+    background-attachment:fixed;min-height:100vh;}
+  .wrap{max-width:1240px;margin:0 auto;padding:26px 22px 70px;}
+
+  /* header */
+  header{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:22px;flex-wrap:wrap;}
+  .brand-left{display:flex;align-items:center;gap:16px;}
+  .globo-mark{width:52px;height:52px;border-radius:50%;flex-shrink:0;
+    background:conic-gradient(from 90deg,#E53935,#FB8C00,#FDD835,#43A047,#1E88E5,#8E24AA,#E53935);
+    display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.35);}
+  .globo-mark::after{content:'';width:20px;height:20px;border-radius:50%;background:#0B1E9E;}
+  .titles h1{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.14em;margin:0;color:var(--txt-dim);text-transform:uppercase;}
+  .titles h2{font-family:var(--display);font-weight:700;font-size:30px;margin:2px 0 0;line-height:1.05;text-transform:uppercase;}
+  .titles h2 span{color:var(--green);}
+  .brand-right{text-align:right;}
+  .brand-right .tvglobo{font-family:var(--display);font-weight:700;font-size:24px;color:#fff;}
+  .brand-right .period{font-family:var(--body);font-size:13px;color:var(--green);font-weight:700;margin-top:2px;}
+  .brand-logo{height:26px;margin-top:8px;display:inline-block;}
+
+  /* week selector */
+  .weekstrip{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
+  .weekbtn{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.25);color:var(--txt);
+    font-size:12.5px;padding:9px 16px;border-radius:8px;cursor:pointer;transition:.15s;white-space:nowrap;font-weight:700;}
+  .weekbtn:hover{background:rgba(255,255,255,.2);}
+  .weekbtn.active{background:var(--green);color:var(--blue-deep);border-color:var(--green);}
+
+  /* cards */
+  .card{background:var(--card);color:var(--card-txt);border-radius:16px;padding:22px 24px;margin-bottom:16px;box-shadow:0 8px 30px rgba(0,0,0,.18);}
+  .sec-title{font-family:var(--display);font-weight:700;font-size:22px;text-align:center;color:var(--green);
+    text-transform:uppercase;letter-spacing:.04em;margin:6px 0 18px;text-shadow:0 1px 10px rgba(57,255,106,.25);}
+  .sec-title .w{color:var(--blue-2);}
+
+  /* KPI */
+  .kpi-card{display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:0;overflow:hidden;}
+  .kpi{padding:24px 20px;border-right:1px solid var(--line);}
+  .kpi:last-child{border-right:none;}
+  .kpi .val{font-family:var(--display);font-weight:700;font-size:34px;line-height:1;color:var(--blue-0);}
+  .kpi.hero .val{color:var(--blue-2);}
+  .kpi .val.neg{color:var(--red);}
+  .kpi .lbl{font-size:12.5px;color:var(--card-dim);margin-top:8px;line-height:1.35;}
+  .kpi .lbl b{color:var(--card-txt);}
+  @media(max-width:860px){.kpi-card{grid-template-columns:repeat(2,1fr);}.kpi{border-bottom:1px solid var(--line);}}
+
+  /* charts row */
+  .chart-card{padding:20px 24px;}
+  .chart-wrap{position:relative;height:270px;}
+  .chart-note{background:var(--blue-0);color:#fff;font-size:12px;padding:7px 12px;border-radius:8px;display:inline-block;margin-bottom:8px;font-weight:700;}
+  .footnote{font-size:11px;color:var(--txt-dim);font-style:italic;margin:2px 2px 18px;}
+
+  /* top posts */
+  .posts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media(max-width:860px){.posts-grid{grid-template-columns:1fr;}}
+  .post-col h4{font-family:var(--display);font-weight:700;text-align:center;color:#fff;background:var(--blue-2);
+    border-radius:8px;padding:7px;margin:0 0 12px;text-transform:uppercase;letter-spacing:.06em;font-size:15px;}
+  .post{background:#F4F7FF;border:1px solid var(--line);border-radius:12px;padding:14px;color:var(--card-txt);}
+  .post .creative{height:150px;border-radius:8px;background:#DDE5FA url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="%235A6BB5" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>') center/40px no-repeat;
+    display:flex;align-items:flex-end;margin-bottom:10px;overflow:hidden;}
+  .post .creative img{width:100%;height:100%;object-fit:cover;border-radius:8px;}
+  .post .desc{font-size:12.5px;line-height:1.45;margin-bottom:10px;}
+  .post .foot{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;}
+  .post .eng{font-weight:700;color:var(--blue-2);}
+  .post a{color:var(--card-dim);text-decoration:none;font-size:11px;}
+  .post a:hover{text-decoration:underline;}
+
+  /* termos + trends */
+  .termos-grid{display:grid;grid-template-columns:1fr 1.1fr 1.2fr;gap:20px;align-items:start;}
+  @media(max-width:860px){.termos-grid{grid-template-columns:1fr;}}
+  .termstat{margin-bottom:20px;}
+  .termstat .big{font-family:var(--display);font-weight:700;font-size:30px;color:var(--blue-2);}
+  .termstat .sub{font-size:12.5px;color:var(--card-dim);line-height:1.4;}
+  .termstat .rep{font-family:var(--display);font-weight:700;font-size:22px;color:var(--blue-0);}
+  table.tbl{width:100%;border-collapse:collapse;font-size:12.5px;color:var(--card-txt);}
+  table.tbl th{background:var(--blue-2);color:#fff;padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;}
+  table.tbl th:first-child{border-radius:6px 0 0 0;}table.tbl th:last-child{border-radius:0 6px 0 0;}
+  table.tbl td{padding:7px 10px;border-bottom:1px solid var(--line);}
+  table.tbl td.num{text-align:right;font-weight:700;color:var(--blue-0);}
+  table.tbl tr:last-child td{border-bottom:none;}
+  .cloud{display:flex;flex-wrap:wrap;gap:6px 12px;align-content:flex-start;justify-content:center;padding:6px;}
+  .cloud span{font-family:var(--display);font-weight:700;line-height:1;}
+
+  /* google trends */
+  .gt-head{text-align:center;font-size:13px;color:var(--card-txt);margin-bottom:6px;}
+  .gt-head b.up{color:#1B9E4B;}.gt-head b.down{color:var(--red);}
+  .gt-cats{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:18px;}
+  .gt-cat{background:#F0F4FF;border-radius:20px;padding:5px 14px;font-size:12px;color:var(--card-txt);}
+  .gt-cat b{color:var(--blue-2);}
+  .gt-tables{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:860px){.gt-tables{grid-template-columns:1fr;}}
+  .gt-sub{font-family:var(--display);font-weight:700;color:var(--blue-0);font-size:14px;margin:0 0 6px;text-transform:uppercase;}
+
+  /* editorias */
+  .ed-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:860px){.ed-grid{grid-template-columns:1fr;}}
+  .ed{background:var(--blue-0);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:16px 18px;}
+  .ed .tag{display:inline-block;background:var(--blue-2);color:#fff;font-family:var(--display);font-weight:700;
+    font-size:13px;padding:4px 12px;border-radius:6px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;}
+  .ed .head{color:var(--green);font-weight:700;font-size:14.5px;line-height:1.4;margin-bottom:12px;}
+  .ed .det{font-size:12.5px;line-height:1.55;color:#DCE4FF;margin-bottom:10px;}
+  .ed .det:last-child{margin-bottom:0;}
+  .ed .det b{color:#fff;}
+
+  footer{margin-top:24px;font-size:11px;color:var(--txt-dim);line-height:1.5;border-top:1px solid rgba(255,255,255,.2);padding-top:14px;}
+  footer b{color:var(--txt);}
+  .loading{padding:80px;text-align:center;color:var(--txt-dim);font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand-left">
+      <div class="globo-mark"></div>
+      <div class="titles">
+        <h1>Relatório Semanal de</h1>
+        <h2>Repercussão &amp; <span>Mídias</span></h2>
+      </div>
+    </div>
+    <div class="brand-right">
+      <div class="tvglobo">tvglobo</div>
+      <div class="period" id="period">—</div>
+      <img class="brand-logo" src="logo-elife.png" alt="Elife">
+    </div>
+  </header>
+
+  <div class="weekstrip" id="weekstrip"></div>
+  <div id="content"><div class="loading">Carregando dados da planilha…</div></div>
+
+  <footer id="methodology"></footer>
+</div>
+
+<script>
+/* ---------- helpers ---------- */
+function parseNum(s){if(s==null)return 0;const str=String(s).trim();if(!str||str==='—')return 0;return Number(str.replace(/\./g,'').replace(',','.'))||0;}
+function fmtInt(n){return Number(n||0).toLocaleString('pt-BR');}
+function fmtMil(n){n=Number(n||0);if(n>=1e6)return (n/1e6).toFixed(1).replace('.',',').replace(',0','')+' Mi';if(n>=1e3)return (n/1e3).toFixed(1).replace('.',',').replace(',0','')+' Mil';return String(n);}
+function safeUrl(s){let u=(s||'').trim().replace(/"/g,'');if(!u)return'';if(!/^https?:\/\//i.test(u))u='https://'+u;try{return new URL(u).href;}catch(e){return'';}}
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+/* ---------- CSV ---------- */
+function parseCSV(text){
+  const rows=[];let cur='',row=[],inQ=false;
+  for(let i=0;i<text.length;i++){const ch=text[i];
+    if(ch==='"'){if(inQ&&text[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(ch===','&&!inQ){row.push(cur);cur='';}
+    else if((ch==='\n'||ch==='\r')&&!inQ){if(ch==='\r'&&text[i+1]==='\n')i++;row.push(cur);rows.push(row);row=[];cur='';}
+    else cur+=ch;}
+  if(cur!==''||row.length){row.push(cur);rows.push(row);}
+  const clean=rows.filter(r=>r.some(c=>c.trim()!==''));
+  if(!clean.length)return[];
+  const headers=clean[0].map(h=>h.trim().toUpperCase());
+  return clean.slice(1).map(r=>{const o={};headers.forEach((h,i)=>o[h]=(r[i]||'').trim());return o;});
+}
+
+/* ---------- data source: publica cada aba como CSV e cola o gid aqui ---------- */
+/* Deixe SHEET_BASE vazio pra usar dados de exemplo. Depois de publicar a planilha,
+   cole a base pub?...&single=true e o gid de cada aba. */
+const SHEET_BASE='';  // ex: 'https://docs.google.com/spreadsheets/d/e/XXXX/pub?single=true&output=csv&gid='
+const TABS=['SEMANAS','REDES','DIARIO','TOP_POSTS','TERMOS_X','TRENDING_TOPICS','NUVEM',
+  'GTRENDS_RESUMO','GTRENDS_CATEGORIAS','GTRENDS_TOP','YOUTUBE_TRENDS','EDITORIAS','EDITORIAS_DETALHE','METODOLOGIA'];
+const GIDS={};  // {SEMANAS:'0', REDES:'123', ...} — preencher ao publicar
+
+async function fetchTab(tab){
+  if(!SHEET_BASE||!GIDS[tab])return[tab,null];
+  const url=SHEET_BASE+GIDS[tab];
+  const tries=[url,`https://corsproxy.io/?${encodeURIComponent(url)}`,`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`];
+  for(const u of tries){try{const r=await fetch(u);if(!r.ok)continue;const t=await r.text();if(t&&t.includes(','))return[tab,parseCSV(t)];}catch(e){}}
+  return[tab,null];
+}
+
+let SHEETS={};
+async function load(){
+  const results=await Promise.all(TABS.map(fetchTab));
+  SHEETS={};
+  results.forEach(([tab,rows])=>{SHEETS[tab]=(rows&&rows.length)?rows:SAMPLE[tab]||[];});
+  buildWeeks();
+}
+
+/* ---------- week model ---------- */
+let WEEKS=[],selected=null;
+function buildWeeks(){
+  const keys=[...new Set((SHEETS.SEMANAS||[]).map(r=>r.SEMANA_INICIO).filter(Boolean))];
+  // ordena por data dd/mm/yyyy desc
+  const toD=s=>{const m=(s||'').match(/(\d{2})\/(\d{2})\/(\d{4})/);return m?new Date(+m[3],+m[2]-1,+m[1]):new Date(0);};
+  WEEKS=keys.sort((a,b)=>toD(b)-toD(a));
+  const strip=document.getElementById('weekstrip');
+  strip.innerHTML=WEEKS.map((w,i)=>{
+    const meta=(SHEETS.SEMANAS||[]).find(r=>r.SEMANA_INICIO===w)||{};
+    return `<button class="weekbtn${i===0?' active':''}" data-w="${esc(w)}">${esc(w)} – ${esc(meta.SEMANA_FIM||'')}</button>`;
+  }).join('');
+  strip.querySelectorAll('.weekbtn').forEach(b=>b.onclick=()=>{
+    strip.querySelectorAll('.weekbtn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');render(b.dataset.w);
+  });
+  renderMethodology();
+  if(WEEKS.length)render(WEEKS[0]);
+  else document.getElementById('content').innerHTML='<div class="loading">Nenhuma semana encontrada na planilha.</div>';
+}
+
+function rowsFor(tab,w){return (SHEETS[tab]||[]).filter(r=>r.SEMANA_INICIO===w);}
+function prevWeek(w){const i=WEEKS.indexOf(w);return i>=0&&i<WEEKS.length-1?WEEKS[i+1]:null;}
+
+/* ---------- render ---------- */
+let charts=[];
+function render(w){
+  selected=w;
+  charts.forEach(c=>c.destroy());charts=[];
+  const meta=(SHEETS.SEMANAS||[]).find(r=>r.SEMANA_INICIO===w)||{};
+  document.getElementById('period').textContent=`${meta.SEMANA_INICIO||''} a ${meta.SEMANA_FIM||''}`;
+
+  document.getElementById('content').innerHTML=
+    kpiCard(meta)+redesCard(w)+diarioCard(w,meta)+postsCard(w)+termosCard(w)+gtrendsCard(w)+youtubeCard(w)+editoriasCard(w);
+
+  drawRedes(w);drawDiario(w);
+}
+
+function kpiCard(m){
+  const varNeg=String(m.VAR_MEDIA_3M_PCT||'').trim().startsWith('-');
+  return `<div class="card kpi-card">
+    <div class="kpi hero"><div class="val">${esc(m.COMENTARIOS_TOTAL||'—')}</div><div class="lbl">Comentários espontâneos<br><b>em todas as redes</b></div></div>
+    <div class="kpi"><div class="val">${esc(m.COMENTARIOS_X||'—')}</div><div class="lbl">Comentários espontâneos<br><b>em X (Twitter)</b></div></div>
+    <div class="kpi"><div class="val ${varNeg?'neg':''}">${esc(m.VAR_MEDIA_3M_PCT||'—')}</div><div class="lbl">Média 3 meses<br>${esc(m.MEDIA_3M_INFO||'')}</div></div>
+    <div class="kpi"><div class="val">${esc(m.USUARIOS_UNICOS_X||'—')}</div><div class="lbl">Usuários únicos<br><b>em X (Twitter)</b></div></div>
+  </div>`;
+}
+
+function redesCard(w){
+  return `<div class="card chart-card"><div class="chart-wrap"><canvas id="cRedes"></canvas></div></div>`;
+}
+function drawRedes(w){
+  const rows=rowsFor('REDES',w);
+  const el=document.getElementById('cRedes');if(!el)return;
+  charts.push(new Chart(el,{type:'bar',data:{labels:rows.map(r=>r.REDE),
+    datasets:[{data:rows.map(r=>parseNum(r.COMENTARIOS)),backgroundColor:'#2D6CDF',borderRadius:4,barPercentage:.6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      datalabels:false,tooltip:{callbacks:{label:c=>fmtInt(c.raw)}}},
+      scales:{y:{ticks:{color:'#5A6BB5',callback:v=>fmtInt(v)},grid:{color:'#EEF2FC'}},x:{ticks:{color:'#0B1E9E',font:{weight:'bold'}},grid:{display:false}}}}}));
+  // rótulos nas barras
+  const c=charts[charts.length-1];
+  c.options.animation={onComplete:()=>{const ctx=c.ctx;ctx.font='bold 12px GlobotipoTextos,sans-serif';ctx.fillStyle='#0B1E9E';ctx.textAlign='center';
+    c.data.datasets[0].data.forEach((v,i)=>{const bar=c.getDatasetMeta(0).data[i];ctx.fillText(fmtInt(v),bar.x,bar.y-6);});}};
+  c.update();
+}
+
+function diarioCard(w,m){
+  const note=m.INSIGHT_SEMANA?`<div class="chart-note">${esc(m.INSIGHT_SEMANA)}</div><br>`:'';
+  return `<div class="card chart-card">${note}<div class="chart-wrap"><canvas id="cDiario"></canvas></div>
+    <div class="footnote">*Comentários espontâneos: menções aos programas da grade de forma espontânea nas redes.</div></div>`;
+}
+function drawDiario(w){
+  const DIAS=['segunda','terça','quarta','quinta','sexta','sábado','domingo'];
+  const cur=rowsFor('DIARIO',w);
+  const pw=prevWeek(w);const prev=pw?rowsFor('DIARIO',pw):[];
+  const byDay=rows=>DIAS.map(d=>{const r=rows.find(x=>(x.DIA||'').toLowerCase().startsWith(d.slice(0,3)));return r?parseNum(r.COMENTARIOS):null;});
+  const el=document.getElementById('cDiario');if(!el)return;
+  const ds=[{label:'SEMANA ATUAL',data:byDay(cur),borderColor:'#2D6CDF',backgroundColor:'#2D6CDF',tension:.35,borderWidth:2.5,pointRadius:3}];
+  if(prev.length)ds.push({label:'SEMANA ANTERIOR',data:byDay(prev),borderColor:'#FF5A6E',backgroundColor:'#FF5A6E',tension:.35,borderWidth:2,pointRadius:0,borderDash:[5,4]});
+  charts.push(new Chart(el,{type:'line',data:{labels:DIAS,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#5A6BB5',font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtInt(c.raw)}}},
+      scales:{y:{ticks:{color:'#5A6BB5',callback:v=>fmtInt(v)},grid:{color:'#EEF2FC'}},x:{ticks:{color:'#0B1E9E'},grid:{display:false}}}}}));
+}
+
+function postsCard(w){
+  const order=['X','INSTAGRAM','FACEBOOK'];
+  const rows=rowsFor('TOP_POSTS',w);
+  const cols=order.map(net=>{
+    const p=rows.find(r=>(r.REDE||'').toUpperCase()===net||(net==='X'&&/twitter/i.test(r.REDE)));
+    const creative=p&&p.IMAGEM_URL?`<img src="${safeUrl(p.IMAGEM_URL)}" alt="">`:'';
+    if(!p)return `<div class="post-col"><h4>${net}</h4><div class="post"><div class="creative"></div><div class="desc" style="color:#9AA8D8;font-style:italic">Sem dados</div></div></div>`;
+    return `<div class="post-col"><h4>${net}</h4><div class="post">
+      <div class="creative">${creative}</div>
+      <div class="desc">${esc(p.DESCRICAO||'')}</div>
+      <div class="foot"><span class="eng">${esc(p.ENGAJAMENTO||'')}</span>${p.URL_POST?`<a href="${safeUrl(p.URL_POST)}" target="_blank">ver post ↗</a>`:''}</div>
+    </div></div>`;
+  }).join('');
+  return `<div class="card"><div class="sec-title">Top publicações com <span class="w">mais engajamento</span> em cada rede</div>
+    <div class="posts-grid">${cols}</div></div>`;
+}
+
+function termosCard(w){
+  const t=rowsFor('TERMOS_X',w);
+  const br=t.find(r=>/brasil/i.test(r.ESCOPO))||{};
+  const mu=t.find(r=>/mundo/i.test(r.ESCOPO))||{};
+  const stat=(o,label)=>o.TERMOS_UNICOS?`<div class="termstat"><span class="big">${esc(o.TERMOS_UNICOS)}</span>
+    <div class="sub">termos únicos ${label}<br>(${esc(o.PCT_DO_TOTAL||'')} do total) aparecendo</div>
+    <span class="rep">${esc(o.APARICOES||'')}</span></div>`:'';
+  const tt=rowsFor('TRENDING_TOPICS',w);
+  const ttTable=`<table class="tbl"><tr><th>Trending Topic</th><th>Horas TT Mundo</th><th>Horas TT Brasil</th></tr>
+    ${tt.map(r=>`<tr><td>${esc(r.HASHTAG)}</td><td class="num">${esc(r.HORAS_TT_MUNDO||'—')}</td><td class="num">${esc(r.HORAS_TT_BRASIL||'—')}</td></tr>`).join('')}</table>`;
+  const cloud=rowsFor('NUVEM',w);
+  const maxW=Math.max(1,...cloud.map(r=>parseNum(r.PESO)));
+  const palette=['#0B1E9E','#2D6CDF','#00A3B5','#1B9E4B','#5A6BB5'];
+  const cloudHtml=`<div class="cloud">${cloud.map((r,i)=>{const sz=14+(parseNum(r.PESO)/maxW)*30;
+    return `<span style="font-size:${sz.toFixed(0)}px;color:${palette[i%palette.length]}">${esc(r.TERMO)}</span>`;}).join('')}</div>`;
+  return `<div class="card"><div class="sec-title">Top termos e <span class="w">trends no X</span></div>
+    <div class="termos-grid">
+      <div>${stat(br,'Brasil')}${stat(mu,'Mundo')}</div>
+      <div>${ttTable}</div>
+      <div>${cloudHtml}</div>
+    </div></div>`;
+}
+
+function gtrendsCard(w){
+  const r=rowsFor('GTRENDS_RESUMO',w)[0]||{};
+  const sign=v=>{v=String(v||'').trim();return v.startsWith('-')?`<b class="down">${esc(v)}</b>`:`<b class="up">${esc(v)}</b>`;};
+  const cats=rowsFor('GTRENDS_CATEGORIAS',w);
+  const catHtml=cats.map(c=>`<div class="gt-cat">${esc(c.CATEGORIA)} <b>${esc(c.PCT)}</b> (${esc(c.QTD_TERMOS)})</div>`).join('');
+  const top=rowsFor('GTRENDS_TOP',w);
+  const byCat={};top.forEach(r=>{(byCat[r.CATEGORIA]=byCat[r.CATEGORIA]||[]).push(r);});
+  const half=Object.keys(byCat);const mid=Math.ceil(half.length/2);
+  const tblFor=cat=>`<div><div class="gt-sub">Top ${esc(cat)}</div><table class="tbl"><tr><th>Termo</th><th>Pesquisas</th></tr>
+    ${byCat[cat].map(r=>`<tr><td>${esc(r.TERMO)}</td><td class="num">${fmtInt(parseNum(r.PESQUISAS))}</td></tr>`).join('')}</table></div>`;
+  const colA=half.slice(0,mid).map(tblFor).join('');
+  const colB=half.slice(mid).map(tblFor).join('');
+  return `<div class="card"><div class="sec-title">Google <span class="w">Trends</span></div>
+    <div class="gt-head"><b>${esc(r.TOTAL_TERMOS||'—')}</b> termos (${sign(r.VAR_TERMOS_PCT)} sobre a semana anterior) ·
+      <b>${esc(r.TOTAL_PESQUISAS||'—')}</b> de pesquisas (${sign(r.VAR_PESQUISAS_PCT)} sobre a semana anterior)</div>
+    <div class="gt-cats">${catHtml}</div>
+    <div class="gt-tables"><div>${colA}</div><div>${colB}</div></div>
+  </div>`;
+}
+
+function youtubeCard(w){
+  const rows=rowsFor('YOUTUBE_TRENDS',w);
+  if(!rows.length)return'';
+  return `<div class="card"><div class="sec-title">YouTube <span class="w">Trends</span></div>
+    <table class="tbl"><tr><th>Vídeo</th><th>Visualizações</th><th>Dia</th></tr>
+    ${rows.map(r=>`<tr><td>${r.URL?`<a href="${safeUrl(r.URL)}" target="_blank" style="color:#0B1E9E">${esc(r.TITULO)}</a>`:esc(r.TITULO)}</td>
+      <td class="num">${esc(r.VISUALIZACOES)}</td><td class="num">${esc(r.DIA)}</td></tr>`).join('')}</table></div>`;
+}
+
+function editoriasCard(w){
+  const eds=rowsFor('EDITORIAS',w);
+  const dets=rowsFor('EDITORIAS_DETALHE',w);
+  if(!eds.length)return'';
+  const cards=eds.map(e=>{
+    const d=dets.filter(x=>(x.EDITORIA||'')===e.EDITORIA);
+    const detHtml=d.map(x=>`<div class="det">${x.PROGRAMA_TAG?`<b>${esc(x.PROGRAMA_TAG)}</b> `:''}${esc(x.TEXTO)}</div>`).join('');
+    return `<div class="ed"><span class="tag">${esc(e.EDITORIA)}</span>
+      <div class="head">${esc(e.HEADLINE)}</div>${detHtml}</div>`;
+  }).join('');
+  return `<div class="card"><div class="sec-title">O que <span class="w">estão falando</span> sobre a gente</div>
+    <div class="ed-grid">${cards}</div></div>`;
+}
+
+function renderMethodology(){
+  const rows=SHEETS.METODOLOGIA||[];
+  if(!rows.length){document.getElementById('methodology').innerHTML='';return;}
+  document.getElementById('methodology').innerHTML='<b>METODOLOGIA</b><br>'+
+    rows.map(r=>`<b>${esc(r.REDE)}:</b> ${esc(r.DESCRICAO)}`).join(' · ');
+}
+
+/* ---------- sample data (semana de referência) ---------- */
+const SAMPLE={
+  SEMANAS:[
+    {SEMANA_INICIO:'29/06/2026',SEMANA_FIM:'05/07/2026',COMENTARIOS_TOTAL:'649,5 Mil',COMENTARIOS_X:'434 Mil',USUARIOS_UNICOS_X:'172,3 Mil',VAR_MEDIA_3M_PCT:'-92%',MEDIA_3M_INFO:'(média diária/últimos 3 meses; comparação apenas em X) 783.417 (24/02–24/05)',INSIGHT_SEMANA:'Jogo da Copa do Mundo entre Brasil e Noruega elevou o buzz.'},
+    {SEMANA_INICIO:'22/06/2026',SEMANA_FIM:'28/06/2026',COMENTARIOS_TOTAL:'712,0 Mil',COMENTARIOS_X:'498 Mil',USUARIOS_UNICOS_X:'188,0 Mil',VAR_MEDIA_3M_PCT:'-90%',MEDIA_3M_INFO:'(média diária/últimos 3 meses; comparação apenas em X)',INSIGHT_SEMANA:'Estreia de Quem Ama Cuida puxou o volume.'},
+  ],
+  REDES:[
+    {SEMANA_INICIO:'29/06/2026',REDE:'Facebook',COMENTARIOS:'121772'},
+    {SEMANA_INICIO:'29/06/2026',REDE:'X',COMENTARIOS:'433843'},
+    {SEMANA_INICIO:'29/06/2026',REDE:'Instagram',COMENTARIOS:'83239'},
+    {SEMANA_INICIO:'29/06/2026',REDE:'Youtube',COMENTARIOS:'4469'},
+    {SEMANA_INICIO:'29/06/2026',REDE:'Bluesky',COMENTARIOS:'6089'},
+    {SEMANA_INICIO:'22/06/2026',REDE:'Facebook',COMENTARIOS:'130000'},
+    {SEMANA_INICIO:'22/06/2026',REDE:'X',COMENTARIOS:'498000'},
+    {SEMANA_INICIO:'22/06/2026',REDE:'Instagram',COMENTARIOS:'75000'},
+    {SEMANA_INICIO:'22/06/2026',REDE:'Youtube',COMENTARIOS:'5200'},
+    {SEMANA_INICIO:'22/06/2026',REDE:'Bluesky',COMENTARIOS:'4000'},
+  ],
+  DIARIO:[
+    {SEMANA_INICIO:'29/06/2026',DIA:'segunda',COMENTARIOS:'140000'},
+    {SEMANA_INICIO:'29/06/2026',DIA:'terça',COMENTARIOS:'86000'},
+    {SEMANA_INICIO:'29/06/2026',DIA:'quarta',COMENTARIOS:'100000'},
+    {SEMANA_INICIO:'29/06/2026',DIA:'quinta',COMENTARIOS:'95000'},
+    {SEMANA_INICIO:'29/06/2026',DIA:'sexta',COMENTARIOS:'74000'},
+    {SEMANA_INICIO:'29/06/2026',DIA:'sábado',COMENTARIOS:'72000'},
+    {SEMANA_INICIO:'29/06/2026',DIA:'domingo',COMENTARIOS:'146000'},
+    {SEMANA_INICIO:'22/06/2026',DIA:'segunda',COMENTARIOS:'90000'},
+    {SEMANA_INICIO:'22/06/2026',DIA:'terça',COMENTARIOS:'92000'},
+    {SEMANA_INICIO:'22/06/2026',DIA:'quarta',COMENTARIOS:'110000'},
+    {SEMANA_INICIO:'22/06/2026',DIA:'quinta',COMENTARIOS:'112000'},
+    {SEMANA_INICIO:'22/06/2026',DIA:'sexta',COMENTARIOS:'95000'},
+    {SEMANA_INICIO:'22/06/2026',DIA:'sábado',COMENTARIOS:'88000'},
+    {SEMANA_INICIO:'22/06/2026',DIA:'domingo',COMENTARIOS:'85000'},
+  ],
+  TOP_POSTS:[
+    {SEMANA_INICIO:'29/06/2026',REDE:'X',URL_POST:'https://twitter.com/BrunoBurza/status/1',IMAGEM_URL:'',DESCRICAO:'"O Jornal da Globo confirmou o que o Brasil já desconfiava: Flávio Bolsonaro tá negociando o fim do PIX." Soberania não se negocia.',ENGAJAMENTO:'188,3 mil interações'},
+    {SEMANA_INICIO:'29/06/2026',REDE:'Instagram',URL_POST:'',IMAGEM_URL:'',DESCRICAO:'Post do @PortalDosMemes sobre a atuação de Letícia Colin em Quem Ama Cuida.',ENGAJAMENTO:'96 mil interações'},
+    {SEMANA_INICIO:'29/06/2026',REDE:'Facebook',URL_POST:'',IMAGEM_URL:'',DESCRICAO:'Vídeo da cobertura da Copa do Mundo na Globo com repercussão da eliminação do Brasil.',ENGAJAMENTO:'54 mil interações'},
+  ],
+  TERMOS_X:[
+    {SEMANA_INICIO:'29/06/2026',ESCOPO:'Brasil',TERMOS_UNICOS:'46',PCT_DO_TOTAL:'5%',APARICOES:'2.165x'},
+    {SEMANA_INICIO:'29/06/2026',ESCOPO:'Mundo',TERMOS_UNICOS:'13',PCT_DO_TOTAL:'1%',APARICOES:'579x'},
+  ],
+  TRENDING_TOPICS:[
+    {SEMANA_INICIO:'29/06/2026',HASHTAG:'#BRAxJAP',HORAS_TT_MUNDO:'7h',HORAS_TT_BRASIL:'14,1h'},
+    {SEMANA_INICIO:'29/06/2026',HASHTAG:'#BRAxNOR',HORAS_TT_MUNDO:'6,6h',HORAS_TT_BRASIL:'18,3h'},
+    {SEMANA_INICIO:'29/06/2026',HASHTAG:'#ARGxCBV',HORAS_TT_MUNDO:'6,1h',HORAS_TT_BRASIL:'15,8h'},
+    {SEMANA_INICIO:'29/06/2026',HASHTAG:'#BELSEN',HORAS_TT_MUNDO:'5,6h',HORAS_TT_BRASIL:'11,2h'},
+    {SEMANA_INICIO:'29/06/2026',HASHTAG:'#AUSEGY',HORAS_TT_MUNDO:'4,7h',HORAS_TT_BRASIL:'—'},
+  ],
+  NUVEM:[
+    {SEMANA_INICIO:'29/06/2026',TERMO:'#QuemAmaCuida',PESO:'10'},
+    {SEMANA_INICIO:'29/06/2026',TERMO:'#CopaNaGlobo',PESO:'9'},
+    {SEMANA_INICIO:'29/06/2026',TERMO:'Neymar',PESO:'8'},
+    {SEMANA_INICIO:'29/06/2026',TERMO:'gol',PESO:'6'},
+    {SEMANA_INICIO:'29/06/2026',TERMO:'seleção',PESO:'7'},
+    {SEMANA_INICIO:'29/06/2026',TERMO:'Noruega',PESO:'5'},
+    {SEMANA_INICIO:'29/06/2026',TERMO:'Letícia Colin',PESO:'6'},
+    {SEMANA_INICIO:'29/06/2026',TERMO:'eliminação',PESO:'5'},
+    {SEMANA_INICIO:'29/06/2026',TERMO:'Japão',PESO:'4'},
+    {SEMANA_INICIO:'29/06/2026',TERMO:'transmissão',PESO:'4'},
+    {SEMANA_INICIO:'29/06/2026',TERMO:'Ana Thaís',PESO:'5'},
+    {SEMANA_INICIO:'29/06/2026',TERMO:'Fantástico',PESO:'3'},
+  ],
+  GTRENDS_RESUMO:[
+    {SEMANA_INICIO:'29/06/2026',TOTAL_TERMOS:'22',VAR_TERMOS_PCT:'-12%',TOTAL_PESQUISAS:'2,4 Mi',VAR_PESQUISAS_PCT:'+20%'},
+  ],
+  GTRENDS_CATEGORIAS:[
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Variedades',PCT:'4,55%',QTD_TERMOS:'1'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Novelas',PCT:'9,09%',QTD_TERMOS:'2'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Institucional',PCT:'22,73%',QTD_TERMOS:'5'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Jornalismo',PCT:'4,54%',QTD_TERMOS:'1'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Esportes',PCT:'59,09%',QTD_TERMOS:'13'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Filmes',PCT:'0%',QTD_TERMOS:'0'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Reality',PCT:'0%',QTD_TERMOS:'0'},
+  ],
+  GTRENDS_TOP:[
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Esportes',TERMO:'alemanha e paraguai',PESQUISAS:'1000000'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Esportes',TERMO:'canadá x marrocos',PESQUISAS:'500000'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Esportes',TERMO:'austrália x egito',PESQUISAS:'500000'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Institucional',TERMO:'globo ao vivo',PESQUISAS:'20000'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Institucional',TERMO:'globo',PESQUISAS:'6000'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Institucional',TERMO:'programação globo',PESQUISAS:'4000'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Variedades',TERMO:'luís roberto',PESQUISAS:'10000'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Jornalismo',TERMO:'renata vasconcellos',PESQUISAS:'100'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Novelas',TERMO:'resumo das novelas',PESQUISAS:'1000'},
+    {SEMANA_INICIO:'29/06/2026',CATEGORIA:'Novelas',TERMO:'quem ama cuida',PESQUISAS:'200'},
+  ],
+  YOUTUBE_TRENDS:[
+    {SEMANA_INICIO:'29/06/2026',TITULO:'Venezuela pós-terremoto: equipes internacionais buscam sobreviventes',VISUALIZACOES:'137 mil',DIA:'05/07/2026',URL:''},
+    {SEMANA_INICIO:'29/06/2026',TITULO:'JN: Uma semana dos terremotos na Venezuela',VISUALIZACOES:'26 mil',DIA:'01/07/2026',URL:''},
+    {SEMANA_INICIO:'29/06/2026',TITULO:'JN: Venezuelano que passou 4 dias soterrado conta que foi o único encontrado vivo em prédio',VISUALIZACOES:'26 mil',DIA:'29/06/2026',URL:''},
+  ],
+  EDITORIAS:[
+    {SEMANA_INICIO:'29/06/2026',EDITORIA:'Jornalismo',HEADLINE:'Jornal Nacional liderou em volume absoluto, enquanto Fantástico e Jornal da Globo dobraram seu alcance em meio a cobranças sobre o STF e polêmicas envolvendo Flávio Bolsonaro'},
+    {SEMANA_INICIO:'29/06/2026',EDITORIA:'Dramaturgia',HEADLINE:'Quem Ama Cuida atingiu 117 mil depoimentos liderada por memes de Letícia Colin, enquanto Coração Acelerado cresceu com evento sertanejo em Goiânia e A Nobreza do Amor foi celebrada'},
+    {SEMANA_INICIO:'29/06/2026',EDITORIA:'Institucional',HEADLINE:'Provocação da Cazé TV ganhou tração e puxou volume de menções à Globo; atuação de Cristiane como comentarista foi o contraponto positivo'},
+    {SEMANA_INICIO:'29/06/2026',EDITORIA:'Variedades',HEADLINE:'Especial de "Rei do Gado" fez Viver Sertanejo saltar 478%, enquanto Domingão repercutiu com a eliminação do Brasil e polêmicas'},
+    {SEMANA_INICIO:'29/06/2026',EDITORIA:'Esportes',HEADLINE:'Copa é na Globo! Viralizou o comentário de Ana Thaís Matos criticando Neymar durante a eliminação para a Noruega, dividindo opiniões'},
+    {SEMANA_INICIO:'29/06/2026',EDITORIA:'Especiais',HEADLINE:'Solidariedade a Luís Roberto marcou a semana nos esportes'},
+  ],
+  EDITORIAS_DETALHE:[
+    {SEMANA_INICIO:'29/06/2026',EDITORIA:'Jornalismo',PROGRAMA_TAG:'#JornalNacional',TEXTO:'alcançou 30,4 mil depoimentos. A repercussão dos assuntos desta semana se concentrou em debates politizados. Um internauta somou 7,1 mil interações ao induzir que a emissora não noticiaria a atuação do senador Flávio Bolsonaro.'},
+    {SEMANA_INICIO:'29/06/2026',EDITORIA:'Jornalismo',PROGRAMA_TAG:'#Fantástico',TEXTO:'gerou 15,3 mil depoimentos, crescimento de 140% em comparação à semana passada, incluindo a disputa federal de Nikolas Ferreira.'},
+    {SEMANA_INICIO:'29/06/2026',EDITORIA:'Dramaturgia',PROGRAMA_TAG:'#QuemAmaCuida',TEXTO:'obteve 117,4 mil depoimentos, 37% de crescimento em relação à semana anterior. Letícia Colin foi elogiada pela atuação como Adriana, personagem que virou meme.'},
+    {SEMANA_INICIO:'29/06/2026',EDITORIA:'Institucional',PROGRAMA_TAG:'Institucional',TEXTO:'somou 112,3 mil depoimentos. As menções de maior repercussão se desdobraram sob o contexto da Copa do Mundo. Um internauta somou 36,1 mil interações ao compartilhar um trecho dos jogos exclusivos.'},
+    {SEMANA_INICIO:'29/06/2026',EDITORIA:'Variedades',PROGRAMA_TAG:'#ViverSertanejo',TEXTO:'alcançou 13,3 mil depoimentos, crescimento de 478% em relação à semana anterior, puxado pela edição especial "Rei do Gado".'},
+    {SEMANA_INICIO:'29/06/2026',EDITORIA:'Esportes',PROGRAMA_TAG:'#FutebolnaGlobo',TEXTO:'somou 11,7 mil depoimentos, alta de 48%. Perfis como @CazeTVOficial e @ESPNBrasil desejaram boa recuperação ao Luís Roberto.'},
+    {SEMANA_INICIO:'29/06/2026',EDITORIA:'Especiais',PROGRAMA_TAG:'#SomBrasil',TEXTO:'registrou 7,6 mil depoimentos na semana.'},
+  ],
+  METODOLOGIA:[
+    {REDE:'X',DESCRICAO:'dados coletados do Twitter via Brandwatch com regras de coleta construídas internamente pelo time Elife'},
+    {REDE:'Trending Topics',DESCRICAO:'Brandwatch / curadoria time Elife'},
+    {REDE:'Instagram',DESCRICAO:'hashtags oficiais + amostra de perfis'},
+    {REDE:'Facebook',DESCRICAO:'Socialnews / Brandwatch'},
+    {REDE:'YouTube',DESCRICAO:'postagens e comentários'},
+  ],
+};
+
+load();
+</script>
+</body>
+</html>
