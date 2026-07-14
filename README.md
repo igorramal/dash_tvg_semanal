@@ -14,16 +14,13 @@ Dashboard semanal (não diário). Mesmo esquema do dash da Copa: `index.html` ú
 - O **gráfico linha "semana anterior"** sai automático da semana imediatamente anterior já preenchida. Não precisa preencher duas vezes.
 - Sem planilha configurada, o dash mostra dados de exemplo (semana 29/06/2026) pra referência visual.
 
-## Publicar a planilha (uma vez)
-1. Importe `Planilha_Dash_Semanal_Globo.xlsx` no Google Sheets (Arquivo → Importar).
-2. **Arquivo → Compartilhar → Publicar na web.**
-3. Publique **cada aba** como CSV. A URL fica tipo:
-   `https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?single=true&output=csv&gid=NNNN`
-4. No `index.html`, preencha:
-   - `SHEET_BASE` = a parte fixa até `gid=` (ex: `https://docs.google.com/.../pub?single=true&output=csv&gid=`)
-   - `GIDS` = `{SEMANAS:'0', REDES:'123456', DIARIO:'...', ...}` — o `gid` de cada aba (aparece na URL de cada aba publicada).
+## Conectar a planilha (uma vez)
+1. Importe `Planilha_Dash_Semanal_Globo.xlsx` no Google Sheets (Arquivo → Importar → Inserir novas páginas). Mantenha os nomes das abas.
+2. **Compartilhar → "Qualquer pessoa com o link" → Leitor.**
+3. Copie o ID do doc na URL: `docs.google.com/spreadsheets/d/`**`ESSE_ID`**`/edit`.
+4. No `index.html`, cole em `const SHEET_ID='...'`. Pronto — o dash lê cada aba pelo nome.
 
-Enquanto `SHEET_BASE` estiver vazio, roda com os dados de exemplo.
+Enquanto `SHEET_ID` estiver vazio, roda com os dados de exemplo.
 
 ## Deploy Netlify
 1. Suba a pasta num repositório GitHub novo.
