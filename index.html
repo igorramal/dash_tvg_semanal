@@ -65,6 +65,7 @@
   /* charts row */
   .chart-card{padding:20px 24px;}
   .chart-wrap{position:relative;height:270px;}
+  .no-daily{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--card-dim);font-size:13px;font-style:italic;padding:0 20px;}
   .chart-note{background:var(--blue-0);color:#fff;font-size:12px;padding:7px 12px;border-radius:8px;display:inline-block;margin-bottom:8px;font-weight:700;}
   .footnote{font-size:11px;color:var(--txt-dim);font-style:italic;margin:2px 2px 18px;}
 
@@ -271,9 +272,11 @@ function drawDiario(w){
   const DIAS=['segunda','terça','quarta','quinta','sexta','sábado','domingo'];
   const cur=rowsFor('DIARIO',w);
   const pw=prevWeek(w);const prev=pw?rowsFor('DIARIO',pw):[];
-  const byDay=rows=>DIAS.map(d=>{const r=rows.find(x=>(x.DIA||'').toLowerCase().startsWith(d.slice(0,3)));return r?parseNum(r.COMENTARIOS):null;});
+  const byDay=rows=>DIAS.map(d=>{const r=rows.find(x=>(x.DIA||'').toLowerCase().startsWith(d.slice(0,3)));const v=r?String(r.COMENTARIOS||'').trim():'';return v?parseNum(v):null;});
   const el=document.getElementById('cDiario');if(!el)return;
-  const ds=[{label:'SEMANA ATUAL',data:byDay(cur),borderColor:'#2D6CDF',backgroundColor:'#2D6CDF',tension:.35,borderWidth:2.5,pointRadius:3}];
+  const curData=byDay(cur);
+  if(!curData.some(v=>v!=null)){el.closest('.chart-wrap').innerHTML='<div class="no-daily">Preencha a aba DIARIO da planilha (comentários por dia) para ver o gráfico da semana.</div>';return;}
+  const ds=[{label:'SEMANA ATUAL',data:curData,borderColor:'#2D6CDF',backgroundColor:'#2D6CDF',tension:.35,borderWidth:2.5,pointRadius:3}];
   if(prev.length)ds.push({label:'SEMANA ANTERIOR',data:byDay(prev),borderColor:'#FF5A6E',backgroundColor:'#FF5A6E',tension:.35,borderWidth:2,pointRadius:0,borderDash:[5,4]});
   charts.push(new Chart(el,{type:'line',data:{labels:DIAS,datasets:ds},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#5A6BB5',font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtInt(c.raw)}}},
