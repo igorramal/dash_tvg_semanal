@@ -173,17 +173,24 @@ function parseCSV(text){
 }
 
 /* ---------- fonte de dados ----------
-   1. Importe a planilha no Google Sheets (mantenha os nomes das abas).
-   2. Compartilhe: "Qualquer pessoa com o link" → Leitor.
-   3. Cole o ID do doc abaixo (o trecho entre /d/ e /edit na URL).
-   Vazio = usa os dados de exemplo. */
-const SHEET_ID='1erratVy60sryo5Zef6E6G6qtKcLk-lsqdGnnIsn24Fs';  // ex: '1AbC...xyz'
-const TABS=['SEMANAS','REDES','DIARIO','TOP_POSTS','TERMOS_X','TRENDING_TOPICS','NUVEM',
-  'GTRENDS_RESUMO','GTRENDS_CATEGORIAS','GTRENDS_TOP','YOUTUBE_TRENDS','EDITORIAS','EDITORIAS_DETALHE','METODOLOGIA'];
+   Lê cada aba pelo endpoint export?format=csv (texto exato da célula, sem o
+   type-guessing do gviz que quebrava quando datas/percentuais eram digitados
+   como número/data). O GIDS mapeia nome da aba -> gid. Os gids só mudam se
+   uma aba for apagada e recriada; nesse caso, reabra a aba e atualize o gid
+   (está no fim da URL: .../edit#gid=NNNN). Vazio = usa os dados de exemplo. */
+const SHEET_ID='1erratVy60sryo5Zef6E6G6qtKcLk-lsqdGnnIsn24Fs';
+const GIDS={
+  SEMANAS:'38218365', REDES:'980495082', DIARIO:'1316912414', TOP_POSTS:'1265974114',
+  TERMOS_X:'1156779143', TRENDING_TOPICS:'1639711825', NUVEM:'357552760',
+  GTRENDS_RESUMO:'1914167013', GTRENDS_CATEGORIAS:'385869040', GTRENDS_TOP:'362859264',
+  YOUTUBE_TRENDS:'1429996760', EDITORIAS:'2089689354', EDITORIAS_DETALHE:'453832295',
+  METODOLOGIA:'1209581974',
+};
+const TABS=Object.keys(GIDS);
 
 async function fetchTab(tab){
-  if(!SHEET_ID)return[tab,null];
-  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
+  if(!SHEET_ID||!GIDS[tab])return[tab,null];
+  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GIDS[tab]}`;
   const tries=[url,`https://corsproxy.io/?${encodeURIComponent(url)}`,`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`];
   for(const u of tries){try{const r=await fetch(u);if(!r.ok)continue;const t=await r.text();if(t&&t.includes(','))return[tab,parseCSV(t)];}catch(e){}}
   return[tab,null];
