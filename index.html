@@ -121,6 +121,24 @@
   .ed .det:last-child{margin-bottom:0;}
   .ed .det b{color:#fff;}
 
+  /* análise de sentimento */
+  .sent-group{margin-bottom:22px;}
+  .sent-group:last-child{margin-bottom:0;}
+  .sent-head{font-family:var(--display);font-weight:700;font-size:15px;color:var(--card-txt);margin:0 0 12px;text-transform:uppercase;letter-spacing:.03em;}
+  .sent-head span{color:var(--card-dim);font-weight:400;text-transform:none;}
+  .sent-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:860px){.sent-cols{grid-template-columns:1fr;}}
+  .sent-col h5{margin:0 0 10px;font-family:var(--display);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.04em;padding:6px 12px;border-radius:6px;color:#fff;}
+  .sent-col.pos h5{background:#1B9E4B;}
+  .sent-col.neg h5{background:var(--red);}
+  .sent-row{margin-bottom:9px;}
+  .sent-row .lbl{display:flex;justify-content:space-between;font-size:12.5px;color:var(--card-txt);margin-bottom:3px;}
+  .sent-row .lbl .q{font-weight:700;}
+  .sent-bar{height:8px;border-radius:4px;background:#EDF2FC;overflow:hidden;}
+  .sent-bar i{display:block;height:100%;border-radius:4px;}
+  .sent-col.pos .sent-bar i{background:#1B9E4B;}
+  .sent-col.neg .sent-bar i{background:var(--red);}
+  .sent-row .ex{font-size:11px;color:var(--card-dim);font-style:italic;margin-top:3px;line-height:1.35;}
   footer{margin-top:24px;font-size:11px;color:var(--txt-dim);line-height:1.5;border-top:1px solid rgba(255,255,255,.2);padding-top:14px;}
   footer b{color:var(--txt);}
   .loading{padding:80px;text-align:center;color:var(--txt-dim);font-size:14px;}
@@ -186,13 +204,27 @@ const GIDS={
   YOUTUBE_TRENDS:'1429996760', EDITORIAS:'2089689354', EDITORIAS_DETALHE:'453832295',
   METODOLOGIA:'1209581974',
 };
-const TABS=Object.keys(GIDS);
+/* Abas escritas pelo Apps Script (tipos consistentes) são buscadas por nome via
+   gviz+headers=1 — não precisam de gid fixo. Se um dia der problema, capture o
+   gid da aba e coloque em GIDS. */
+const TABS=[...Object.keys(GIDS),'ANALISE_SENTIMENTO'];
 
+function tabUrl(tab){
+  if(GIDS[tab])return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GIDS[tab]}`;
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(tab)}`;
+}
+/* gviz por nome retorna a PRIMEIRA aba quando a aba pedida não existe — então
+   exigimos uma coluna-chave pra confirmar que veio a aba certa. */
+const REQUIRED_COL={ANALISE_SENTIMENTO:'SUBCATEGORIA'};
 async function fetchTab(tab){
-  if(!SHEET_ID||!GIDS[tab])return[tab,null];
-  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GIDS[tab]}`;
+  if(!SHEET_ID)return[tab,null];
+  const url=tabUrl(tab);
+  const req=REQUIRED_COL[tab];
   const tries=[url,`https://corsproxy.io/?${encodeURIComponent(url)}`,`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`];
-  for(const u of tries){try{const r=await fetch(u);if(!r.ok)continue;const t=await r.text();if(t&&t.includes(','))return[tab,parseCSV(t)];}catch(e){}}
+  for(const u of tries){try{const r=await fetch(u);if(!r.ok)continue;const t=await r.text();if(!t||!t.includes(','))continue;
+    const rows=parseCSV(t);
+    if(req&&(!rows.length||!(req in rows[0])))return[tab,[]]; // aba ainda não existe / veio aba errada
+    return[tab,rows];}catch(e){}}
   return[tab,null];
 }
 
@@ -200,7 +232,8 @@ let SHEETS={};
 async function load(){
   const results=await Promise.all(TABS.map(fetchTab));
   SHEETS={};
-  results.forEach(([tab,rows])=>{SHEETS[tab]=(rows&&rows.length)?rows:SAMPLE[tab]||[];});
+  const demo=!SHEET_ID; // SAMPLE só no modo demo (sem planilha conectada)
+  results.forEach(([tab,rows])=>{SHEETS[tab]=(rows&&rows.length)?rows:(demo?(SAMPLE[tab]||[]):(rows||[]));});
   buildWeeks();
 }
 
@@ -237,7 +270,7 @@ function render(w){
   document.getElementById('period').textContent=`${meta.SEMANA_INICIO||''} a ${meta.SEMANA_FIM||''}`;
 
   document.getElementById('content').innerHTML=
-    kpiCard(meta)+redesCard(w)+diarioCard(w,meta)+postsCard(w)+termosCard(w)+gtrendsCard(w)+youtubeCard(w)+editoriasCard(w);
+    kpiCard(meta)+redesCard(w)+diarioCard(w,meta)+postsCard(w)+termosCard(w)+gtrendsCard(w)+youtubeCard(w)+editoriasCard(w)+sentimentCard(w);
 
   drawRedes(w);drawDiario(w);
 }
@@ -373,6 +406,34 @@ function editoriasCard(w){
     <div class="ed-grid">${cards}</div></div>`;
 }
 
+function sentimentCard(w){
+  const rows=rowsFor('ANALISE_SENTIMENTO',w);
+  if(!rows.length)return'';
+  // agrupa por PRODUTO + EDITORIA
+  const groups={};
+  rows.forEach(r=>{const k=(r.PRODUTO||'')+'||'+(r.EDITORIA||'');(groups[k]=groups[k]||[]).push(r);});
+  const isPos=p=>/pos/i.test(p||'');
+  const colHtml=(items,cls)=>{
+    if(!items.length)return `<div class="sent-col ${cls}"><h5>${cls==='pos'?'Positivo':'Negativo'}</h5><div class="no-data">—</div></div>`;
+    const max=Math.max(1,...items.map(r=>parseNum(r.QUANTIDADE)));
+    const rowsH=items.sort((a,b)=>parseNum(b.QUANTIDADE)-parseNum(a.QUANTIDADE)).map(r=>{
+      const q=parseNum(r.QUANTIDADE);const pct=(q/max*100).toFixed(0);
+      return `<div class="sent-row"><div class="lbl"><span>${esc(r.SUBCATEGORIA)}</span><span class="q">${fmtInt(q)}</span></div>
+        <div class="sent-bar"><i style="width:${pct}%"></i></div>
+        ${r.EXEMPLOS?`<div class="ex">“${esc(r.EXEMPLOS)}”</div>`:''}</div>`;
+    }).join('');
+    return `<div class="sent-col ${cls}"><h5>${cls==='pos'?'Positivo':'Negativo'}</h5>${rowsH}</div>`;
+  };
+  const groupsH=Object.entries(groups).map(([k,items])=>{
+    const [prod,ed]=k.split('||');
+    const pos=items.filter(r=>isPos(r.POLARIDADE));
+    const neg=items.filter(r=>!isPos(r.POLARIDADE));
+    return `<div class="sent-group"><div class="sent-head">${esc(prod)} <span>· ${esc(ed)}</span></div>
+      <div class="sent-cols">${colHtml(pos,'pos')}${colHtml(neg,'neg')}</div></div>`;
+  }).join('');
+  return `<div class="card"><div class="sec-title">Análise de <span class="w">sentimento</span></div>${groupsH}</div>`;
+}
+
 function renderMethodology(){
   const rows=SHEETS.METODOLOGIA||[];
   if(!rows.length){document.getElementById('methodology').innerHTML='';return;}
@@ -495,6 +556,18 @@ const SAMPLE={
     {SEMANA_INICIO:'29/06/2026',EDITORIA:'Esportes',PROGRAMA_TAG:'#FutebolnaGlobo',TEXTO:'somou 11,7 mil depoimentos, alta de 48% em relação à semana anterior. Perfis como @CazeTVOficial e @ESPNBrasil desejaram boa recuperação ao Luis Roberto, enquanto o @futebol_info noticiou o diagnóstico de neoplasia e divulgou o pronunciamento do narrador. Outras contas relembraram a última Copa do Mundo sem o Luis, Cléber Machado e Galvão Bueno. Perfis também comentaram a saudade do "monopólio da Globo". Por outro lado, houve críticas à emissora pelo uso do termo "Brabas" para a Seleção Feminina e à redução do tempo de Três Graças por causa da transmissão do futebol.'},
     {SEMANA_INICIO:'29/06/2026',EDITORIA:'Especiais',PROGRAMA_TAG:'Sessão da Tarde',TEXTO:'somou 1,8 mil depoimentos. No X, a história dos sete cães que escaparam dos sequestradores e voltaram para casa gerou repercussão. Um usuário que a compartilhou descreveu o evento como "a coisa mais filme sessão da tarde que eu já vi na vida" e alcançou 157 mil interações com seu comentário.'},
     {SEMANA_INICIO:'29/06/2026',EDITORIA:'Especiais',PROGRAMA_TAG:'#SomBrasil',TEXTO:'registrou 7,6 mil depoimentos na semana.'},
+  ],
+  ANALISE_SENTIMENTO:[
+    {SEMANA_INICIO:'29/06/2026',PRODUTO:'Amor de Mãe',EDITORIA:'Dramaturgia',POLARIDADE:'positivo',SUBCATEGORIA:'atuação',QUANTIDADE:'320',EXEMPLOS:'Letícia Colin tá impecável como Adriana'},
+    {SEMANA_INICIO:'29/06/2026',PRODUTO:'Amor de Mãe',EDITORIA:'Dramaturgia',POLARIDADE:'positivo',SUBCATEGORIA:'enredo',QUANTIDADE:'210',EXEMPLOS:'a nova fase tá muito melhor'},
+    {SEMANA_INICIO:'29/06/2026',PRODUTO:'Amor de Mãe',EDITORIA:'Dramaturgia',POLARIDADE:'positivo',SUBCATEGORIA:'protagonista',QUANTIDADE:'180',EXEMPLOS:'amo a protagonista dessa novela'},
+    {SEMANA_INICIO:'29/06/2026',PRODUTO:'Amor de Mãe',EDITORIA:'Dramaturgia',POLARIDADE:'positivo',SUBCATEGORIA:'interesse/expectativa',QUANTIDADE:'140',EXEMPLOS:'não vejo a hora do capítulo de hoje'},
+    {SEMANA_INICIO:'29/06/2026',PRODUTO:'Amor de Mãe',EDITORIA:'Dramaturgia',POLARIDADE:'positivo',SUBCATEGORIA:'vilão',QUANTIDADE:'90',EXEMPLOS:'que vilã maravilhosa'},
+    {SEMANA_INICIO:'29/06/2026',PRODUTO:'Amor de Mãe',EDITORIA:'Dramaturgia',POLARIDADE:'negativo',SUBCATEGORIA:'enredo',QUANTIDADE:'130',EXEMPLOS:'enredo arrastado demais'},
+    {SEMANA_INICIO:'29/06/2026',PRODUTO:'Amor de Mãe',EDITORIA:'Dramaturgia',POLARIDADE:'negativo',SUBCATEGORIA:'corte/edição',QUANTIDADE:'95',EXEMPLOS:'cortes muito bruscos nas cenas'},
+    {SEMANA_INICIO:'29/06/2026',PRODUTO:'Amor de Mãe',EDITORIA:'Dramaturgia',POLARIDADE:'negativo',SUBCATEGORIA:'redução por eventos externos',QUANTIDADE:'70',EXEMPLOS:'novela cortada por causa da Copa de novo'},
+    {SEMANA_INICIO:'29/06/2026',PRODUTO:'Amor de Mãe',EDITORIA:'Dramaturgia',POLARIDADE:'negativo',SUBCATEGORIA:'horário',QUANTIDADE:'30',EXEMPLOS:'começou tarde demais hoje'},
+    {SEMANA_INICIO:'29/06/2026',PRODUTO:'Amor de Mãe',EDITORIA:'Dramaturgia',POLARIDADE:'negativo',SUBCATEGORIA:'outras críticas',QUANTIDADE:'25',EXEMPLOS:'propaganda demais no meio'},
   ],
   METODOLOGIA:[
     {REDE:'X',DESCRICAO:'dados coletados do Twitter por meio do Brandwatch com regras de coleta construídas internamente pelo time Elife'},
