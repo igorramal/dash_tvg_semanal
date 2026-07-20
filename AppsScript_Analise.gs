@@ -100,10 +100,17 @@ function gemini_(promptText){
     contents:[{parts:[{text:promptText}]}],
     generationConfig:{ temperature:0.2, responseMimeType:'application/json' }
   };
-  var res = UrlFetchApp.fetch(url,{method:'post',contentType:'application/json',payload:JSON.stringify(payload),muteHttpExceptions:true});
-  var code = res.getResponseCode();
-  if(code!==200) throw new Error('Gemini HTTP '+code+': '+res.getContentText().slice(0,300));
-  var body = JSON.parse(res.getContentText());
+  var opts = {method:'post',contentType:'application/json',payload:JSON.stringify(payload),muteHttpExceptions:true};
+  var code, text;
+  for(var tent=0; tent<4; tent++){
+    var res = UrlFetchApp.fetch(url, opts);
+    code = res.getResponseCode(); text = res.getContentText();
+    if(code===200) break;
+    if(code===429 || code===503){ Utilities.sleep(3000*(tent+1)); continue; } // rate limit: espera e tenta de novo
+    break; // outros erros: não adianta repetir
+  }
+  if(code!==200) throw new Error('Gemini HTTP '+code+': '+text.slice(0,300));
+  var body = JSON.parse(text);
   var txt = body.candidates && body.candidates[0] && body.candidates[0].content.parts[0].text;
   if(!txt) throw new Error('Gemini sem resposta.');
   return txt;
